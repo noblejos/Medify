@@ -34,15 +34,6 @@ export class Doctor {
 	user: Ref<User>;
 
 	@prop({ required: true })
-	firstName: string;
-
-	@prop({ required: true })
-	lastName: string;
-
-	@prop({ required: true })
-	phoneNumber: string;
-
-	@prop({ required: true })
 	address: string;
 
 	@prop({ required: true })

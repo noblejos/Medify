@@ -1,0 +1,26 @@
+export const colors = {
+  medify: [
+    "#1c1b23",
+    "#201f29",
+    "#2e2d3a",
+    "#2e2d3a",
+    "#86858d",
+    "#a9a9ae",
+    "#201f29",
+    "#201f29",
+    "#201f29",
+    "#eaeaeb",
+  ],
+  medifyDark: ["#1c1b23", "#201f29", "#2e2d3a", "#52515b", "#86858d"],
+  medifySecondary: ["#f6ae2e", "#f8bc52", "#fad086", "#fbdea9", "#fef7ea"],
+  medifyGrey: [
+    "#9b9b9b",
+    "#acacac",
+    "#c5c5c5",
+    "#F0F0F0",
+    "#FaFaFb",
+    "#d6d6d6",
+    "#f5f5f5",
+    "#A9A9AE",
+  ],
+} as const;
