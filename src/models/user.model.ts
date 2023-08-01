@@ -65,7 +65,7 @@ export class User {
 	gender: Gender;
 
 	@prop({ required: true, default: Role.USER })
-	Role: Role;
+	role: Role;
 
 	async validatePassword(this: DocumentType<User>, candidatePassword: string) {
 		try {
@@ -80,6 +80,7 @@ export class User {
 			const token = sign({ _id: this._id, email: this.email }, secret!);
 			return token;
 		} catch (error) {
+			console.log("here");
 			throw error;
 		}
 	}

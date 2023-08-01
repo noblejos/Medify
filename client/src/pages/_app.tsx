@@ -4,16 +4,24 @@ import { useState } from 'react';
 import { AppProps } from 'next/app';
 import { getCookie, setCookie } from 'cookies-next';
 import Head from 'next/head';
-import { MantineProvider, ColorScheme, ColorSchemeProvider, Slider } from '@mantine/core';
+import { MantineProvider, ColorScheme } from '@mantine/core';
 import { cache } from '@/cache';
 import { colors } from "@/constants/theme";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { Notifications } from '@mantine/notifications';
+
+
+
 
 export default function App(props: AppProps & { colorScheme: ColorScheme }) {
   const { Component, pageProps } = props;
 
+  const queryClient = new QueryClient();
+
   return (
     <>
       <div  >
+
         <MantineProvider
           theme={{
             colorScheme: "light",
@@ -31,7 +39,10 @@ export default function App(props: AppProps & { colorScheme: ColorScheme }) {
           withNormalizeCSS
           emotionCache={cache}
         >
-          <Component {...pageProps} />
+          <QueryClientProvider client={queryClient} >
+            <Component {...pageProps} />
+            <Notifications position="top-center" />
+          </QueryClientProvider>
         </MantineProvider>
       </div>
     </>

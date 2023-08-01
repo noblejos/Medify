@@ -1,4 +1,5 @@
 import { adminLinks, doctorsLinks, userLinks } from "@/constants/navLinks";
+import User from "@/store/user.store";
 import {
   createStyles,
   Navbar,
@@ -122,13 +123,13 @@ export function NavbarSearch({
   opened: boolean;
   setOpened: (opened: boolean) => void;
 }) {
-  // const { user } = User();
+  const { user } = User();
   // const { business } = Business();
   const router = useRouter();
   const { classes, theme } = useStyles();
 
 
-  const links = userLinks
+  const links = userLinks;
   // General Links
   const generalLinks = links.map((link) => (
     <Link href={link.path} key={link.path}>
@@ -174,16 +175,15 @@ export function NavbarSearch({
                 variant="filled"
                 mr={15}
               >
-                {/* {user?.firstName.charAt(0)} */}
-                A
+                <Text tt="capitalize" fz={15}>{user?.firstName.charAt(0)}</Text>
               </Avatar>
               <Flex direction="column">
                 <Text size="10px" weight={700} color={theme.primaryColor}>
                   {/* {business ? String(business).toLocaleUpperCase() : "Classic"} */}
                 </Text>
                 <Text size="12px" weight={500} color="dimmed">
-                  {/* {user?.email} */}
-                  test@gmail.com
+                  {user?.email}
+                  <Text tt="capitalize" fw={900} color="black" fz={15}>{user?.role}</Text>
                 </Text>
               </Flex>
             </Flex>

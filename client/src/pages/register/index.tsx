@@ -1,3 +1,5 @@
+import { BaseUrl } from '@/config/baseUrl';
+import User from '@/store/user.store';
 import {
     Paper,
     createStyles,
@@ -10,9 +12,24 @@ import {
     Anchor,
     rem,
     Select,
+    LoadingOverlay,
+    Alert,
 } from '@mantine/core';
 import { useForm, zodResolver } from "@mantine/form";
+import { IconAlertCircle } from '@tabler/icons-react';
+
+import { setCookie } from 'cookies-next';
+import { useQueryClient, useMutation } from '@tanstack/react-query'
+import axios from 'axios';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
 import { z } from "zod"
+
+const createUser = async (data: RegisterForm) => {
+    console.log(data)
+    const { data: response } = await axios.post(`${BaseUrl}/auth/register`, data);
+    return response.data;
+};
 
 const useStyles = createStyles((theme) => ({
     wrapper: {
@@ -47,8 +64,19 @@ const registerSchema = z.object({
         message: "Must be a valid email",
     }),
     password: z
-        .string()
-        .min(6, { message: "Password must be at least 6 character(s)" }),
+        .string({
+            required_error: "Password is required",
+        })
+        .refine(
+            (value) =>
+                /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{8,})/.test(
+                    value,
+                ),
+            `Password must contain at least 8 characters, 
+    include at least one uppercase letter, 
+    one lowercase letter, a number, and one special character`,
+        ),
+    gender: z.string().nonempty(),
 })
 export type RegisterForm = z.infer<typeof registerSchema>
 
@@ -60,51 +88,128 @@ const registerForm = {
     gender: ""
 }
 
-const data = [{ value: "male", label: "Male" }, { label: "female", value: "Female" }]
+const data = [{ label: "Male", value: "male" }, { label: "Female", value: "female" }]
 
 export default function Register() {
     const { classes } = useStyles();
+    const queryClient = useQueryClient()
+    const router = useRouter()
 
-    const bankForm = useForm({
+    const { setUser } = User();
+
+    const [loading, setLoading] = useState(false)
+    const [errorStr, setErrorStr] = useState("")
+
+    const form = useForm<RegisterForm>({
         initialValues: registerForm,
         validate: zodResolver(registerSchema),
     });
 
+    const { mutate, isLoading, isError, error } = useMutation(createUser, {
+        onSuccess: data => {
+            console.log(data);
+
+            setCookie('auth', data.token, { maxAge: 60 * 6 * 24 });
+            setUser({ ...data.user, token: data.token });
+            router.push("/");
+        },
+        onError: (error) => {
+
+            if (axios.isAxiosError(error)) {
+                const data = error.response?.data;
+
+                return setErrorStr(error?.response?.data.message);
+            }
+            console.log({ error })
+            setErrorStr("Something went wrong while processing your request");
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries();
+        }
+    });
+
+    const handleSubmit = async () => {
+        form.validate()
+        const { errors, values } = form;
+        console.log({ error: errors, values: values })
+        if (Object.keys(errors).length) return;
+        mutate(values)
+    }
+
+    const handleChange = (fieldName: keyof RegisterForm, value: string | number) => {
+        const updatedObject = { ...form.values, [fieldName]: value };
+        form.setValues(updatedObject);
+    };
+
     return (
         <div className={classes.wrapper}>
-            <Paper className={classes.form} radius={0} p={30}>
+            <Paper className={classes.form} radius={0} p={30} pos="relative">
+                <LoadingOverlay visible={isLoading} />
                 <Title order={2} className={classes.title} ta="center" mt="md" mb={50}>
                     Welcome to Medify!
                 </Title>
-                <TextInput label="First Name" placeholder="Enter First Name" mt="md" size="md" />
-                <TextInput label="Last Name" placeholder="Enter Last Name" mt="md" size="md" />
-                <TextInput label="Email address" placeholder="hello@gmail.com" mt="md" size="md" />
-                <PasswordInput label="Password" placeholder="Your password" mt="md" size="md" />
+                {isError && (
+                    <Alert
+                        icon={<IconAlertCircle size="1rem" />}
+                        title="An error occurred!"
+                        color="red"
+                        mb={30}
+                        withCloseButton
+                        closeButtonLabel="Close alert"
+                        onClose={() => setErrorStr("")}
+                    >
+                        {errorStr}
+                    </Alert>
+                )}
+
+                <TextInput label="First Name"
+                    placeholder="Enter First Name"
+                    mt="md"
+                    size="md"
+                    value={form.values.firstName}
+                    onChange={(event) =>
+                        handleChange("firstName", event.currentTarget.value)
+                    }
+                    error={form.errors.firstName} />
+                <TextInput label="Last Name" placeholder="Enter Last Name" mt="md" size="md" value={form.values.lastName}
+                    onChange={(event) =>
+                        handleChange("lastName", event.currentTarget.value)
+                    }
+                    error={form.errors.lastName} />
+                <TextInput label="Email address" placeholder="hello@gmail.com" mt="md" size="md" value={form.values.email} onChange={(event) =>
+                    handleChange("email", event.currentTarget.value)
+                }
+                    error={form.errors.email} />
+                <PasswordInput label="Password" placeholder="Your password" mt="md" size="sm" value={form.values.password} onChange={(event) =>
+                    handleChange("password", event.currentTarget.value)
+                }
+                    error={form.errors.password} />
                 <Select
                     label="Gender"
-                    placeholder="Enter Bank Name"
+                    placeholder="select Gender"
                     searchable
                     mb={"lg"}
                     size='md'
                     mt="md"
-                    searchValue={bankForm.values.gender}
+                    searchValue={form.values.gender}
                     nothingFound="No options"
                     data={data}
                     onSearchChange={(event) =>
-                        bankForm.setFieldValue("gender", event!)
+                        form.setFieldValue("gender", event.toLowerCase())
                     }
-                    defaultValue={bankForm.values.gender}
+                    defaultValue={form.values.gender}
+                    error={form.errors.gender}
                 />
 
-                <Checkbox label="Keep me logged in" mt="xl" size="md" />
 
-                <Button fullWidth mt="xl" size="md">
-                    Login
+
+                <Button fullWidth mt="xl" size="md" fw={400} onClick={() => handleSubmit()}>
+                    Register
                 </Button>
 
                 <Text ta="center" mt="md">
                     Already have an account?{' '}
-                    <Anchor<'a'> href="/login" component='a' weight={700} >
+                    <Anchor<'a'> href="/login" component='a' weight={500} >
                         Login
                     </Anchor>
                 </Text>

@@ -5,6 +5,7 @@ import { resourceCreated, successfulRequest } from "../helpers/responses";
 import UserModel from "../models/user.model";
 import { getClientIpAddress } from "../utills/auth.utills";
 import DoctorModel from "../models/doctor.model";
+import NotificationsModel, { Role } from "../models/notifcations.model";
 
 // GET Request Controllers
 const currentUser = async (req: Request, res: Response) => {
@@ -45,13 +46,14 @@ const logout = async (req: Request, res: Response) => {
 // POST Request Controllers
 const register = async (req: Request, res: Response) => {
 	try {
-		const { firstName, lastName, email, password } = req.body;
+		const { firstName, lastName, email, password, gender } = req.body;
 
 		const user = await UserModel.create({
 			firstName,
 			lastName,
 			email,
 			password,
+			gender,
 		});
 
 		const token = await user.generateAuthToken();
@@ -97,16 +99,26 @@ const login = async (req: Request, res: Response) => {
 };
 
 export const applyForDoctorRole = async (req: Request, res: Response) => {
-	const { _id } = req.user;
+	const user = req.user;
 	try {
-		const user = await UserModel.findOne({ _id });
+		const _user = await UserModel.findOne({ _id: user._id });
 		console.log(req.body);
-		if (!user) throw new BadRequestError("User not Found");
+		if (!_user) throw new BadRequestError("User not Found");
+
+		const admin = await UserModel.findOne({ role: Role.ADMIN });
 
 		const doctor = await DoctorModel.create({
-			firstName: user.firstName,
-			lastName: user.lastName,
+			firstName: _user.firstName,
+			lastName: _user.lastName,
 			...req.body,
+		});
+
+		const newNotification = await NotificationsModel.create({
+			user: admin,
+			header: "Doctor application",
+			message: `${_user.firstName} ${_user.lastName} has applied for a doctor account`,
+			clickPath: "admin/doctorsList",
+			role: Role.ADMIN,
 		});
 
 		return successfulRequest({

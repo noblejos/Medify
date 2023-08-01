@@ -13,6 +13,11 @@ export enum Role {
 	ADMIN = "admin",
 }
 
+export enum Status {
+	SEEN = "seen",
+	UNSEEN = "unseen",
+}
+
 @modelOptions({
 	schemaOptions: {
 		timestamps: true,
@@ -41,8 +46,14 @@ export class Notifications {
 	@prop({ required: true })
 	message: string;
 
-	@prop({ required: true, default: Role.USER })
+	@prop({ required: true })
+	clickPath: string;
+
+	@prop({ required: true, default: Role.ADMIN })
 	Role: Role;
+
+	@prop({ required: true, default: Status.UNSEEN })
+	status: Status;
 }
 
 const NotificationsModel = getModelForClass(Notifications);

@@ -1,6 +1,7 @@
 import express from "express";
 
 import authResource from "./auth.routes";
+import notificationResource from "./notifications.routes";
 
 export const router = express.Router();
 
@@ -15,5 +16,6 @@ router.get("/status", (_, res) => res.send("OK"));
  */
 
 router.use("/auth", authResource);
+router.use("/notifications", notificationResource);
 
 export default router;

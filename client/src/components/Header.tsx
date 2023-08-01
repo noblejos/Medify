@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useDisclosure } from "@mantine/hooks";
-// import Cookies from "js-cookie";
 import axios from "axios";
 import {
   Header,
@@ -17,40 +16,25 @@ import {
   UnstyledButton,
   createStyles,
   Indicator,
-  TextInput,
-  Button,
-  Badge,
-  Modal,
-  Paper,
 } from "@mantine/core";
-import { spotlight } from "@mantine/spotlight";
 import {
-  IconBuildingWarehouse,
   IconChevronDown,
-  IconFileInvoice,
-  IconLink,
   IconLogout,
   IconPlayerPause,
-  IconSearch,
   IconSettings,
   IconSwitchHorizontal,
   IconTrash,
-  IconUsers,
-  IconWallet,
 } from "@tabler/icons-react";
-
-// import { colors } from "@/constants/theme";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { RiNotification2Line } from "react-icons/ri";
 // import User from "@/store/user.store";
 
 import Logo from "@/assets/images/medify.png";
-// import LogoIcon from "@/assets/images/logo.png";
-// import LandlordProIcon from "@/assets/images/landlord-pro-icon.png";
-// import Business from "@/store/business.store";
 import Link from "next/link";
-// import getTextForTemplate from "@/constants/templateMapper";
 import useNotification from "@/hooks/useNotification";
+import { getCookie } from "cookies-next";
+import { BaseUrl } from "@/config/baseUrl";
 
 const server = process.env.NEXT_PUBLIC_DB_HOST;
 
@@ -133,13 +117,24 @@ export default function HeaderComponent({
   const { classes, cx } = useStyles();
   const { handleError } = useNotification();
 
+  const queryClient = useQueryClient()
+
 
   const [modalOpened, { open, close }] = useDisclosure(false);
   const [appSwitch, setAppSwitch] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // const { toggle, fullscreen } = useFullscreen();
+  const token = getCookie("auth")
   const [userMenuOpened, setUserMenuOpened] = useState(false);
+  const fetchNotifications = async () => {
+    const { data: response } = await axios.get(`${BaseUrl}/notifications`, {
+      headers: {
+        Authorization: "Bearer " + `${token}`,
+      }
+    });
+    return response.data;
+  }
+  const { isLoading, isError, data: notification, error } = useQuery(["notifications"], fetchNotifications)
 
   const handleLogout = async () => {
     // const token = Cookies.get("auth");
@@ -205,7 +200,7 @@ export default function HeaderComponent({
             <MediaQuery smallerThan="sm" styles={{ display: "none" }}>
               <Indicator
                 inline
-                label={<Text size="8px">2</Text>}
+                label={<Text size="8px">{notification?.length}</Text>}
                 size={15}
                 mr={20}
                 mt={3}

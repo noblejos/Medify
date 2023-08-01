@@ -1,12 +1,34 @@
-import FileUploader from '@/components/Dropzone';
-import withLayout from '@/layout/appLayout';
-import { TextInput, Checkbox, Button, Group, Box, Container, Text, Flex, Divider, rem, ActionIcon, NumberInput, createStyles } from '@mantine/core';
+import {
+    TextInput, Button, Group, Box, Container, Text, Flex, Divider,
+    rem, ActionIcon, NumberInput, createStyles, Alert, LoadingOverlay
+} from '@mantine/core';
 import { TimeInput } from '@mantine/dates';
 import { useForm, zodResolver } from '@mantine/form';
-import { IconClock } from '@tabler/icons-react';
+import { IconAlertCircle, IconClock } from '@tabler/icons-react';
 import axios from 'axios';
 import { useRef, useState } from 'react';
 import { z } from 'zod';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { useRouter } from 'next/router';
+import { getCookie } from 'cookies-next';
+
+import { BaseUrl } from '@/config/baseUrl';
+import useNotification from '@/hooks/useNotification';
+import FileUploader from '@/components/Dropzone';
+import withLayout from '@/layout/appLayout';
+
+
+
+const Apply = async (data: any) => {
+    const token = getCookie("auth")
+    console.log(data)
+    const { data: response } = await axios.post(`${BaseUrl}/auth/apply-for-doctor-role`, data, {
+        headers: {
+            Authorization: "Bearer " + `${token}`,
+        }
+    });
+    return response.data;
+};
 
 const initialValues = {
     address: "",
@@ -14,7 +36,8 @@ const initialValues = {
     experience: "",
     consultationFee: 0,
     from: "",
-    to: ""
+    to: "",
+    license: ""
 }
 
 const doctorForm = z.object({
@@ -24,6 +47,7 @@ const doctorForm = z.object({
     consultationFee: z.number({ invalid_type_error: "Consultation Fee must be a number" }).min(1000, "Consultation Fee must be greater than N1,000"),
     from: z.string().nonempty({ message: "Field is required" }),
     to: z.string().nonempty({ message: "Field is required" }),
+    license: z.string().url(),
 })
 export type RegisterForm = z.infer<typeof doctorForm>
 
@@ -56,6 +80,10 @@ const useStyles = createStyles((theme) => ({
 function ApplyDoctor() {
     const { classes, theme } = useStyles()
 
+    const queryClient = useQueryClient()
+    const router = useRouter()
+    const { handleError, handleSuccess } = useNotification()
+
     const form = useForm<RegisterForm>({
         initialValues: initialValues,
         validate: zodResolver(doctorForm),
@@ -65,10 +93,32 @@ function ApplyDoctor() {
 
     const [file, setFile] = useState<File[] | null>(null);
     const [fileError, setFileError] = useState("")
+    const [errorStr, setErrorStr] = useState("")
 
-    console.log({ file })
+    const { mutate, isLoading, isError, error } = useMutation(Apply, {
+        onSuccess: data => {
+            console.log(data);
+            handleSuccess("Success", "Application for Doctor role submitted successfully")
+            router.push("/");
+        },
+        onError: (error) => {
+            if (axios.isAxiosError(error)) {
+                const data = error.response?.data;
+                return setErrorStr(error?.response?.data.message);
+            }
+            console.log({ error })
+            setErrorStr("Something went wrong while processing your request");
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries();
+        }
+    });
 
-    const handleSubmit = async (values: RegisterForm) => {
+    const handleSubmit = async () => {
+        handleSuccess("Success", "Application for Doctor role submitted successfully")
+        const { values, errors } = form
+        form.validate()
+        console.log(values, errors)
         let fileUrl = null;
         const formData = new FormData();
 
@@ -94,126 +144,142 @@ function ApplyDoctor() {
             license: fileUrl
         }
         console.log({ data })
+        // mutate(data)
+
     }
 
     return (
         <Container size={1200}>
+            <LoadingOverlay visible={isLoading} />
             <Text fz={22} fw={500} > Apply as Doctor </Text>
             <Divider my={10} />
-            <form onSubmit={form.onSubmit((values) => handleSubmit(values))}>
-
-                <Text fz={16} fw={500} mb={20}> Professional Information </Text>
-                <Group
-                    mt={20}
-                    sx={{
-                        [theme.fn.smallerThan("md")]: {
-                            flexDirection: "column",
-                        },
-                    }}
+            {isError && (
+                <Alert
+                    icon={<IconAlertCircle size="1rem" />}
+                    title="An error occurred!"
+                    color="red"
+                    mb={30}
+                    withCloseButton
+                    closeButtonLabel="Close alert"
+                    onClose={() => setErrorStr("")}
                 >
-                    <div>
-                        <Text my={7} fw={400} fz={14}>Upload your Medical License</Text>
-                        <FileUploader
-                            file={file}
-                            setFile={(file) => setFile(file)}
-                            error={fileError}
-                        />
-                    </div>
-                </Group>
-                <Flex
-                    mt={15}
-                    direction={{ base: 'column', sm: 'row' }}
-                    gap={{ base: 'sm', sm: 'lg' }}
-                    justify={{ sm: 'space-between' }}
-                >
-                    <Box w={"100%"} >
-                        <TextInput
+                    {errorStr}
+                </Alert>
+            )}
 
-                            label="Specialization"
-                            placeholder="Specialization"
-                            {...form.getInputProps('specialization')}
-                        />
-                    </Box>
-                    <Box w={"100%"} >
-                        <TextInput
 
-                            label="Experience"
-                            placeholder=" Experience"
-                            {...form.getInputProps('experience')}
-                        />
-                    </Box>
-                    <Box w={"100%"} >
-                        <NumberInput
-                            type="number"
-                            hideControls
-                            label="Fee Per Consultation"
-                            placeholder="Enter your fees"
-                            {...form.getInputProps('consultationFee')}
-                        />
-                    </Box>
-                </Flex>
-                <Flex
-                    mt={15}
-                    direction={{ base: 'column', sm: 'row' }}
-                    gap={{ base: 'sm', sm: 'lg' }}
-                    justify={{ sm: 'space-between' }}
-                >
-
-                </Flex>
-                <Text mt={20} fz={15}>Select time for consultation</Text>
-                <Flex
-                    direction={{ base: 'column', sm: 'row' }}
-                    gap={{ base: 'sm', sm: 'lg' }}
-                    justify={{ base: "", sm: '' }}
-                >
-
-                    <TimeInput
-                        label="From"
-                        ref={from}
-                        rightSection={
-                            <ActionIcon >
-                                <IconClock size="1rem" stroke={1.5} onClick={() => from.current?.showPicker()} />
-                            </ActionIcon>
-                        }
-                        w={{ md: "250px", sm: "100%" }}
-                        {...form.getInputProps('from')}
+            <Text fz={16} fw={500} mb={20}> Professional Information </Text>
+            <Group
+                mt={20}
+                sx={{
+                    [theme.fn.smallerThan("md")]: {
+                        flexDirection: "column",
+                    },
+                }}
+            >
+                <div>
+                    <Text my={7} fw={400} fz={14}>Upload your Medical License</Text>
+                    <FileUploader
+                        file={file}
+                        setFile={(file) => setFile(file)}
+                        error={fileError}
                     />
-                    <TimeInput
-                        label="To"
-                        ref={to}
-                        rightSection={
-                            <ActionIcon >
-                                <IconClock size="1rem" stroke={1.5} onClick={() => to.current?.showPicker()} />
-                            </ActionIcon>
-                        }
-                        w={{ md: "250px", sm: "100%" }}
-                        {...form.getInputProps('to')}
+                </div>
+            </Group>
+            <Flex
+                mt={15}
+                direction={{ base: 'column', sm: 'row' }}
+                gap={{ base: 'sm', sm: 'lg' }}
+                justify={{ sm: 'space-between' }}
+            >
+                <Box w={"100%"} >
+                    <TextInput
+
+                        label="Specialization"
+                        placeholder="Specialization"
+                        {...form.getInputProps('specialization')}
                     />
-                </Flex>
-                <Divider my={20} />
-                <Text fz={16} fw={500} my={25}> Personal Information </Text>
+                </Box>
+                <Box w={"100%"} >
+                    <TextInput
 
-                <Flex
-                    direction={{ base: 'column', sm: 'row' }}
-                    gap={{ base: 'sm', sm: 'lg' }}
-                    justify={{ sm: 'space-between' }}
-                >
-                    <Box w={"100%"}  >
-                        <TextInput
+                        label="Experience"
+                        placeholder=" Experience"
+                        {...form.getInputProps('experience')}
+                    />
+                </Box>
+                <Box w={"100%"} >
+                    <NumberInput
+                        type="number"
+                        hideControls
+                        label="Fee Per Consultation"
+                        placeholder="Enter your fees"
+                        {...form.getInputProps('consultationFee')}
+                    />
+                </Box>
+            </Flex>
+            <Flex
+                mt={15}
+                direction={{ base: 'column', sm: 'row' }}
+                gap={{ base: 'sm', sm: 'lg' }}
+                justify={{ sm: 'space-between' }}
+            >
 
-                            label="Address"
-                            placeholder="Enter your Address"
-                            {...form.getInputProps('address')}
-                        />
-                    </Box>
-                </Flex>
+            </Flex>
+            <Text mt={20} fz={15}>Select time for consultation</Text>
+            <Flex
+                direction={{ base: 'column', sm: 'row' }}
+                gap={{ base: 'sm', sm: 'lg' }}
+                justify={{ base: "", sm: '' }}
+            >
+
+                <TimeInput
+                    label="From"
+                    ref={from}
+                    rightSection={
+                        <ActionIcon >
+                            <IconClock size="1rem" stroke={1.5} onClick={() => from.current?.showPicker()} />
+                        </ActionIcon>
+                    }
+                    w={{ md: "250px", sm: "100%" }}
+                    {...form.getInputProps('from')}
+                />
+                <TimeInput
+                    label="To"
+                    ref={to}
+                    rightSection={
+                        <ActionIcon >
+                            <IconClock size="1rem" stroke={1.5} onClick={() => to.current?.showPicker()} />
+                        </ActionIcon>
+                    }
+                    w={{ md: "250px", sm: "100%" }}
+                    {...form.getInputProps('to')}
+                />
+            </Flex>
+            <Divider my={20} />
+            <Text fz={16} fw={500} my={25}> Personal Information </Text>
+
+            <Flex
+                direction={{ base: 'column', sm: 'row' }}
+                gap={{ base: 'sm', sm: 'lg' }}
+                justify={{ sm: 'space-between' }}
+            >
+                <Box w={"100%"}  >
+                    <TextInput
+
+                        label="Address"
+                        placeholder="Enter your Address"
+                        {...form.getInputProps('address')}
+                    />
+                </Box>
+            </Flex>
 
 
-                <Group position='center' mt="xl">
-                    <Button w={500} type="submit">Submit</Button>
-                </Group>
+            <Group position='right' mt="xl">
+                <Button w={300} type="submit" onClick={() => handleSubmit()}>Submit</Button>
+            </Group>
 
-            </form>
+
         </Container>
 
 

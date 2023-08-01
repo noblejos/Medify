@@ -5,10 +5,13 @@ import styles from '@/styles/Home.module.scss'
 import withLayout from '@/layout/appLayout'
 
 import { Text } from '@mantine/core'
+import User from '@/store/user.store'
 
 const inter = Inter({ subsets: ['latin'] })
 
 function Home() {
+  const { user } = User()
+  console.log(user?.email)
   return (
     <>
       <Head>
