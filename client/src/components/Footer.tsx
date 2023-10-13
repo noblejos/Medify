@@ -17,6 +17,7 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
+console.log("get greens")
 export function LayoutFooter({
   Component,
 }: {
