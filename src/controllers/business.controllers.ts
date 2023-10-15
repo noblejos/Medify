@@ -1,3 +1,3 @@
 const fetchBusiness = () => {};
 
-export default { fetchBusiness };
+export default {};
