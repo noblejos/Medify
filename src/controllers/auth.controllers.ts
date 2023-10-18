@@ -3,7 +3,6 @@ import { Request, Response } from "express";
 import { BadRequestError } from "../errors/bad-request-error";
 import { resourceCreated, successfulRequest } from "../helpers/responses";
 import UserModel from "../models/user.model";
-import { getClientIpAddress } from "../utills/auth.utills";
 import DoctorModel from "../models/doctor.model";
 import NotificationsModel, { Role } from "../models/notifcations.model";
 
@@ -98,7 +97,7 @@ const login = async (req: Request, res: Response) => {
 	}
 };
 
-export const applyForDoctorRole = async (req: Request, res: Response) => {
+const applyForDoctorRole = async (req: Request, res: Response) => {
 	const user = req.user;
 	try {
 		const _user = await UserModel.findOne({ _id: user._id });
