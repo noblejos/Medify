@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import NotificationsModel, { Status } from "../models/notifcations.model";
+import NotificationsModel, { Status } from "../models/notifications.model";
 import { successfulRequest } from "../helpers/responses";
 
 const fetchNotification = async (req: Request, res: Response) => {
