@@ -4,7 +4,7 @@ import { BadRequestError } from "../errors/bad-request-error";
 import { resourceCreated, successfulRequest } from "../helpers/responses";
 import UserModel from "../models/user.model";
 import DoctorModel from "../models/doctor.model";
-import NotificationsModel, { Role } from "../models/notifcations.model";
+import NotificationsModel, { Role } from "../models/notifications.model";
 
 // GET Request Controllers
 const currentUser = async (req: Request, res: Response) => {
