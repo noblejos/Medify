@@ -17,7 +17,7 @@ import useNotification from '@/hooks/useNotification';
 import FileUploader from '@/components/Dropzone';
 import withLayout from '@/layout/appLayout';
 
-
+export type RegisterForm = z.infer<typeof schema>
 
 const Apply = async (data: any) => {
     const token = getCookie("auth")
@@ -34,31 +34,22 @@ const initialValues = {
     address: "",
     specialization: "",
     experience: "",
-    consultationFee: 0,
+    consultationFee: undefined,
     from: "",
     to: "",
     license: ""
 }
 
-const doctorForm = z.object({
+const schema = z.object({
     address: z.string().nonempty().min(4, { message: "Address must be at least 4 character(s)" }),
     specialization: z.string().nonempty(),
     experience: z.string().nonempty(),
-    consultationFee: z.number({ invalid_type_error: "Consultation Fee must be a number" }).min(1000, "Consultation Fee must be greater than N1,000"),
+    consultationFee: z.union([z.number({ invalid_type_error: "Consultation Fee must be a number" }).min(1000, "Consultation Fee must be greater than N1,000"), z.undefined()]),
     from: z.string().nonempty({ message: "Field is required" }),
     to: z.string().nonempty({ message: "Field is required" }),
-    license: z.string().url(),
 })
-export type RegisterForm = z.infer<typeof doctorForm>
 
 const useStyles = createStyles((theme) => ({
-    wrapper: {
-        minHeight: rem(900),
-        backgroundSize: 'cover',
-        backgroundImage:
-            'url(https://images.unsplash.com/photo-1484242857719-4b9144542727?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1280&q=80)',
-    },
-
     form: {
         borderRight: `${rem(1)} solid ${theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[3]
             }`,
@@ -86,7 +77,7 @@ function ApplyDoctor() {
 
     const form = useForm<RegisterForm>({
         initialValues: initialValues,
-        validate: zodResolver(doctorForm),
+        validate: zodResolver(schema),
     });
     const from = useRef<HTMLInputElement>(null);
     const to = useRef<HTMLInputElement>(null);
@@ -94,33 +85,32 @@ function ApplyDoctor() {
     const [file, setFile] = useState<File[] | null>(null);
     const [fileError, setFileError] = useState("")
     const [errorStr, setErrorStr] = useState("")
+    const [visible, setVisible] = useState(true)
 
     const { mutate, isLoading, isError, error } = useMutation(Apply, {
         onSuccess: data => {
-            console.log(data);
             handleSuccess("Success", "Application for Doctor role submitted successfully")
             router.push("/");
         },
         onError: (error) => {
             if (axios.isAxiosError(error)) {
-                const data = error.response?.data;
                 return setErrorStr(error?.response?.data.message);
             }
-            console.log({ error })
             setErrorStr("Something went wrong while processing your request");
+            handleError("Error", "Something went wrong while processing your request")
+
         },
         onSettled: () => {
+            setVisible(false)
             queryClient.invalidateQueries();
         }
     });
 
-    const handleSubmit = async () => {
-        handleSuccess("Success", "Application for Doctor role submitted successfully")
-        const { values, errors } = form
-        form.validate()
-        console.log(values, errors)
+    const handleSubmit = async (values: RegisterForm) => {
+        console.log(values)
         let fileUrl = null;
         const formData = new FormData();
+        setVisible(true)
 
         if (file !== null) {
             setFileError("")
@@ -140,16 +130,17 @@ function ApplyDoctor() {
             specialization: values.specialization,
             experience: values.experience,
             consultationFee: values.consultationFee,
-            timings: [values.from, values.to],
+            timings: { from: values.from, to: values.to },
             license: fileUrl
         }
         console.log({ data })
-        // mutate(data)
+        mutate(data)
 
     }
 
     return (
         <Container size={1200}>
+            <form onSubmit={form.onSubmit((values) => handleSubmit(values))}>
             <LoadingOverlay visible={isLoading} />
             <Text fz={22} fw={500} > Apply as Doctor </Text>
             <Divider my={10} />
@@ -272,14 +263,11 @@ function ApplyDoctor() {
                         {...form.getInputProps('address')}
                     />
                 </Box>
-            </Flex>
-
-
+                </Flex>
             <Group position='right' mt="xl">
-                <Button w={300} type="submit" onClick={() => handleSubmit()}>Submit</Button>
+                    <Button w={300} type="submit">Submit</Button>
             </Group>
-
-
+            </form>
         </Container>
 
 

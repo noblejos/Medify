@@ -13,11 +13,11 @@ export class RequestValidationError extends CustomError {
 
   serializeErrors() {
     return {
-      message: `${this.error.issues[0].message}`,
-      // message: `${this.error.issues[0].path[1]}: ${this.error.issues[0].message} `,
-      code: this.statusCode,
-      status: false,
-      resource: "Authorization",
-    };
+			// message: `${this.error.issues[0].message}`,
+			message: `${this.error.issues[0].path[1]}: ${this.error.issues[0].message} `,
+			code: this.statusCode,
+			status: false,
+			resource: "Authorization",
+		};
   }
 }

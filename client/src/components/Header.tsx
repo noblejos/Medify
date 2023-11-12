@@ -33,8 +33,10 @@ import { RiNotification2Line } from "react-icons/ri";
 import Logo from "@/assets/images/medify.png";
 import Link from "next/link";
 import useNotification from "@/hooks/useNotification";
-import { getCookie } from "cookies-next";
+import { getCookie, deleteCookie } from "cookies-next";
 import { BaseUrl } from "@/config/baseUrl";
+import User from "@/store/user.store";
+import { useRouter } from "next/router";
 
 const server = process.env.NEXT_PUBLIC_DB_HOST;
 
@@ -116,9 +118,10 @@ export default function HeaderComponent({
   const theme = useMantineTheme();
   const { classes, cx } = useStyles();
   const { handleError } = useNotification();
+  const router = useRouter()
 
   const queryClient = useQueryClient()
-
+  const { removeUser, user } = User()
 
   const [modalOpened, { open, close }] = useDisclosure(false);
   const [appSwitch, setAppSwitch] = useState("");
@@ -126,6 +129,8 @@ export default function HeaderComponent({
 
   const token = getCookie("auth")
   const [userMenuOpened, setUserMenuOpened] = useState(false);
+
+
   const fetchNotifications = async () => {
     const { data: response } = await axios.get(`${BaseUrl}/notifications`, {
       headers: {
@@ -145,43 +150,14 @@ export default function HeaderComponent({
       //   headers: { Authorization: `Bearer ${token}` },
       // });
 
-      // Cookies.remove("auth");
-      // removeUser();
+      deleteCookie("auth")
+      removeUser();
       window.location.replace("/auth/login");
     } catch (error) {
       toggleOverlay();
     }
   };
 
-  const handleSwitchRequest = async () => {
-    setLoading(true);
-
-    try {
-      // const { data: res } = await axios.post(
-      //   `${server}/auth/app/select`,
-      //   {
-      //     template: appSwitch,
-      //   },
-      //   {
-      //     headers: { Authorization: `Bearer ${user?.token}` },
-      //   }
-      // );
-
-      // Cookies.set("auth", res.data.token);
-      // setUser({ ...res.data.user, token: res.data.token });
-      // setBusiness(res.data.user.template);
-      window.location.replace("/");
-    } catch (error) {
-      let msg;
-      if (axios.isAxiosError(error)) msg = error.response?.data?.message;
-      return handleError(
-        "App Selection Failed",
-        msg ? msg : "An error occurred. Please try again later"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <Header height={{ base: 60, md: 60 }} p="md">
@@ -198,6 +174,7 @@ export default function HeaderComponent({
         <Group spacing={7}>
           <Flex align="center">
             <MediaQuery smallerThan="sm" styles={{ display: "none" }}>
+              <Link href={"/notifications"}>
               <Indicator
                 inline
                 label={<Text size="8px">{notification?.length}</Text>}
@@ -210,6 +187,8 @@ export default function HeaderComponent({
                   size={20}
                 />
               </Indicator>
+              </Link>
+
             </MediaQuery>
 
             <Menu
@@ -224,9 +203,8 @@ export default function HeaderComponent({
                 <UnstyledButton className={cx(classes.user)}>
                   <Group spacing={7}>
                     <Avatar radius="xl" size={30} color="gray">
-                      {/* {user?.firstName.charAt(0)}
-                      {user?.lastName.charAt(0)} */}
-                      AI
+                      {user?.firstName.charAt(0)}
+                      {user?.lastName.charAt(0)}
                     </Avatar>
                     <Group className={cx(classes.userText)}>
                       <IconChevronDown size={rem(12)} stroke={1.5} />
@@ -236,42 +214,12 @@ export default function HeaderComponent({
               </Menu.Target>
 
               <Menu.Dropdown>
-                <Menu.Label>Settings</Menu.Label>
-                <Menu.Item
-                  className={classes.bgHover}
-                  icon={<IconSettings size="0.9rem" stroke={1.5} />}
-                >
-                  Account settings
-                </Menu.Item>
-                <Menu.Item
-                  className={classes.bgHover}
-                  icon={<IconSwitchHorizontal size="0.9rem" stroke={1.5} />}
-                >
-                  Change account
-                </Menu.Item>
                 <Menu.Item
                   className={classes.bgHover}
                   onClick={handleLogout}
                   icon={<IconLogout size="0.9rem" stroke={1.5} />}
                 >
                   Logout
-                </Menu.Item>
-
-                <Menu.Divider />
-
-                <Menu.Label>Danger zone</Menu.Label>
-                <Menu.Item
-                  className={classes.bgHover}
-                  icon={<IconPlayerPause size="0.9rem" stroke={1.5} />}
-                >
-                  Pause subscription
-                </Menu.Item>
-                <Menu.Item
-                  className={classes.bgHover}
-                  color="red"
-                  icon={<IconTrash size="0.9rem" stroke={1.5} />}
-                >
-                  Delete account
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>

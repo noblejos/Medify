@@ -15,11 +15,14 @@ const apply = z.object({
 			required_error: "Consultation Fee is required",
 			invalid_type_error: "Consultation Fee must be a Number",
 		}),
-		timings: z
-			.string({
+		timings: z.object({
+			from: z.string({
 				required_error: "Timings is required",
-			})
-			.array(),
+			}),
+			to: z.string({
+				required_error: "Timings is required",
+			}),
+		}),
 	}),
 });
 

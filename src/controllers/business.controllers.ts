@@ -1,3 +1,0 @@
-const fetchBusiness = () => {};
-
-export default {};

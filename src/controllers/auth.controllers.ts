@@ -100,24 +100,25 @@ const login = async (req: Request, res: Response) => {
 const applyForDoctorRole = async (req: Request, res: Response) => {
 	const user = req.user;
 	try {
+
 		const _user = await UserModel.findOne({ _id: user._id });
-		console.log(req.body);
+
 		if (!_user) throw new BadRequestError("User not Found");
 
 		const admin = await UserModel.findOne({ role: Role.ADMIN });
 
 		const doctor = await DoctorModel.create({
-			firstName: _user.firstName,
-			lastName: _user.lastName,
+			user,
 			...req.body,
 		});
 
-		const newNotification = await NotificationsModel.create({
+		await NotificationsModel.create({
 			user: admin,
 			header: "Doctor application",
 			message: `${_user.firstName} ${_user.lastName} has applied for a doctor account`,
-			clickPath: "admin/doctorsList",
+			clickPath: "admin/doctors",
 			role: Role.ADMIN,
+			ref: doctor._id,
 		});
 
 		return successfulRequest({

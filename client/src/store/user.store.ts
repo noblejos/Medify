@@ -1,13 +1,14 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-interface User {
+export interface User {
 	firstName: string;
 	lastName: string;
 	email: string;
 	id: string;
 	gender: string;
 	role: string;
+	createdAt?: string;
 }
 
 interface UserState {

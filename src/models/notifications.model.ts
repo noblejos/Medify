@@ -50,7 +50,10 @@ export class Notifications {
 	clickPath: string;
 
 	@prop({ required: true, default: Role.ADMIN })
-	Role: Role;
+	role: Role;
+
+	@prop({ required: true })
+	ref: string;
 
 	@prop({ required: true, default: Status.UNSEEN })
 	status: Status;

@@ -128,8 +128,8 @@ export function NavbarSearch({
   const router = useRouter();
   const { classes, theme } = useStyles();
 
-
-  const links = userLinks;
+  console.log({ user })
+  const links = user?.role === "admin" ? adminLinks : user?.role === "doctor" ? doctorsLinks : userLinks
   // General Links
   const generalLinks = links.map((link) => (
     <Link href={link.path} key={link.path}>

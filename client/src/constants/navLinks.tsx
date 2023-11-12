@@ -103,7 +103,7 @@ export const adminLinks = [
       />
     ),
     label: "Users",
-    path: "/doctor/users-list",
+    path: "/admin/users",
   },
   {
     icon: (active: boolean) => (
@@ -114,7 +114,7 @@ export const adminLinks = [
       />
     ),
     label: "Doctors",
-    path: "/admin/doctors-list",
+    path: "/admin/doctors",
   },
 
 ];

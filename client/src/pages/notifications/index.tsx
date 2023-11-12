@@ -1,4 +1,4 @@
-import { Tabs, Card, Text, Flex } from '@mantine/core';
+import { Tabs, Card, Text, Flex, createStyles } from '@mantine/core';
 
 
 import withLayout from "@/layout/appLayout"
@@ -16,8 +16,23 @@ interface Notification {
     clickPath: string
 }
 
-function Notification() {
+const useStyles = createStyles((theme) => ({
+    card: {
+        fontSize: "14px",
+        fontWeight: 600,
+        cursor: "pointer",
+        border: "1px solid grey",
+        padding: "7px 10px",
+        "&:hover": {
+            backgroundColor: "#FAFAFA",
+            color: "#fff",
 
+        },
+    }
+}));
+
+function Notification() {
+    const { classes } = useStyles();
 
     const queryClient = useQueryClient()
 
@@ -56,14 +71,21 @@ function Notification() {
                     {unSeen?.map((item: Notification, index: number) => (
 
                         <Card key={index}>
-                            <Flex>
-                                <Text c="black">{item.message}</Text>
+                            <Flex className={classes.card}>
+                                <Text c="black" component='a' href={`${item.clickPath}`}>{item.message} <Text fw={400} component='span'>--- click to preview</Text></Text>
                             </Flex>
-
                         </Card>
                     ))}
                 </Tabs.Panel>
-                <Tabs.Panel value="seen">Second panel</Tabs.Panel>
+                <Tabs.Panel value="seen">
+                    {seen?.map((item: Notification, index: number) => (
+                        <Card key={index}>
+                            <Flex className={classes.card}>
+                                <Text c="black">{item.message} <Text fw={400} component='span'>--- click to preview</Text></Text>
+                            </Flex>
+                        </Card>
+                    ))}
+                </Tabs.Panel>
             </Tabs>
         </div>
     )
