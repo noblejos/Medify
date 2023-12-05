@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import { BadRequestError } from "../errors/bad-request-error";
 import { resourceCreated, successfulRequest } from "../helpers/responses";
 import UserModel from "../models/user.model";
-import DoctorModel from "../models/doctor.model";
+import DoctorModel, { DoctorStatus } from "../models/doctor.model";
 import NotificationsModel, { Role } from "../models/notifications.model";
 
 // GET Request Controllers
@@ -130,4 +130,25 @@ const applyForDoctorRole = async (req: Request, res: Response) => {
 		throw error;
 	}
 };
-export default { currentUser, logout, register, login, applyForDoctorRole };
+
+const fetchDoctors = async (req: Request, res: Response) => {
+	try {
+		const doctors = await DoctorModel.find({ status: DoctorStatus.APPROVED });
+		successfulRequest({
+			res,
+			message: "Doctors fetched Successfully",
+			data: doctors,
+		});
+	} catch (error) {
+		throw error;
+	}
+};
+
+export default {
+	currentUser,
+	logout,
+	register,
+	login,
+	applyForDoctorRole,
+	fetchDoctors,
+};

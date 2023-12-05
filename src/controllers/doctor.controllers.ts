@@ -24,4 +24,36 @@ const fetchDoctor = async (req: Request, res: Response) => {
 	}
 };
 
-export default { fetchDoctor };
+const updateDoctorProfile = async (req: Request, res: Response) => {
+	const { _id } = req.user;
+	const { doctorId, firstName, lastName, ...rest } = req.body;
+
+	try {
+		const doctor = await DoctorModel.findOneAndUpdate(
+			{ _id: doctorId },
+			{ ...rest },
+			{ new: true },
+		);
+
+		if (!doctor) throw new BadRequestError("Could Not Find Doctor");
+
+		const user = await UserModel.findOneAndUpdate(
+			{ _id },
+			{
+				$set: {
+					firstName,
+					lastName,
+				},
+			},
+			{ new: true },
+		);
+
+		successfulRequest({
+			res,
+			message: "You Have Successfully Updated your Profile",
+		});
+	} catch (error) {
+		throw error;
+	}
+};
+export default { fetchDoctor, updateDoctorProfile };

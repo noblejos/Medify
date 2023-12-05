@@ -57,7 +57,7 @@ const changeDoctorStatus = async (req: Request, res: Response) => {
 
 		const { doctorId, status } = req.body;
 
-		if (!(Object.values(DoctorStatus) as string[]).includes(status))
+		if (!(<string[]>Object.values(DoctorStatus)).includes(status))
 			throw new BadRequestError("Invalid status key");
 
 		const doctor = await DoctorModel.findOneAndUpdate(

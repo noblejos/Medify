@@ -27,6 +27,8 @@ const loginLimiter = rateLimit({
 // GET Requests
 router.get("/me", auth, controllers.currentUser);
 
+router.get("/fetch-doctors", auth, controllers.fetchDoctors);
+
 // POST Requests
 router.post(
 	"/register",

@@ -16,6 +16,7 @@ import { BaseUrl } from '@/config/baseUrl';
 import useNotification from '@/hooks/useNotification';
 import FileUploader from '@/components/Dropzone';
 import withLayout from '@/layout/appLayout';
+import { GetServerSideProps } from 'next';
 
 export type RegisterForm = z.infer<typeof schema>
 
@@ -275,3 +276,36 @@ function ApplyDoctor() {
 }
 
 export default withLayout(ApplyDoctor, "Apply Doctor")
+
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+    const { req } = ctx;
+    const authToken = req.cookies.auth;
+
+    if (!authToken) {
+        return {
+            redirect: {
+                destination: "/login",
+                permanent: false,
+            },
+        };
+    }
+
+    try {
+        const responses = await Promise.all([
+            axios.get(`${BaseUrl}/auth/me`, {
+                headers: { Authorization: `Bearer ${authToken}` },
+            })
+        ]);
+
+        const user = responses[0].data.data;
+        return { props: { data: { user } } };
+    } catch (error: any) {
+        console.log(error.response)
+        return {
+            redirect: {
+                destination: "/login",
+                permanent: false,
+            },
+        };
+    }
+};
