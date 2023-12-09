@@ -8,7 +8,7 @@ const fetchNotification = async (req: Request, res: Response) => {
 		const notifications = await NotificationsModel.find({ user });
 		return successfulRequest({
 			res,
-			message: "Notification fetched Successfully",
+			message: "Notifications fetched Successfully",
 			data: notifications,
 		});
 	} catch (error) {
@@ -27,7 +27,7 @@ const markAsSeen = async (req: Request, res: Response) => {
 		);
 		return successfulRequest({
 			res,
-			message: "Notification Updated Successfully",
+			message: "Notifications Updated Successfully",
 			data: notifications,
 		});
 	} catch (error) {
