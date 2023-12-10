@@ -104,7 +104,7 @@ function Home() {
                     <Text fz={14} fw={500} c={"dimmed"} w={150}>Consultation Time</Text>
                     <Text fz={14} >{`${doctor.timings.from} - ${doctor.timings.to}`}</Text>
                   </Flex>
-                  {user?.role == "user" && <Button mt={20} onClick={() => handleBookAppointment(doctor.id)} size='xs'>Book Appointment</Button>}
+                  {user?.role == "user" && <Button radius="xs" mt={20} onClick={() => handleBookAppointment(doctor.id)} size='xs'>Book Appointment</Button>}
                 </Card>
               </Grid.Col>
             ))
