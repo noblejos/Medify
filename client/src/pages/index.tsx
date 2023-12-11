@@ -32,14 +32,14 @@ interface Doctor {
   license: string
 }
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'] });
 
 const token = getCookie("auth");
 
 function Home() {
-  const { user } = User()
-  console.log(user?.email)
-  const queryClient = useQueryClient()
+  const { user } = User();
+
+  const queryClient = useQueryClient();
 
   const [opened, { open, close }] = useDisclosure(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor>()
@@ -53,8 +53,7 @@ function Home() {
     return response.data;
   }
 
-  const { isLoading, isError, data: doctors, error } = useQuery(["doctor-details"], fetchDoctorDetails)
-
+  const { isLoading, isError, data: doctors, error } = useQuery(["doctor-details"], fetchDoctorDetails);
 
   const formatTime = (time: string) => {
     return dayjs(time, "HH:mm").format("HH:mm");
