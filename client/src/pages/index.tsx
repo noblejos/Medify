@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.scss'
 import withLayout from '@/layout/appLayout'
 
-import { Button, Card, Divider, Flex, Grid, Modal, Text } from '@mantine/core'
+import { ActionIcon, Button, Card, Divider, Flex, Grid, Modal, Text } from '@mantine/core'
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BaseUrl } from '@/config/baseUrl'
 import axios from 'axios'
@@ -12,8 +12,9 @@ import User, { User as UsersInterface } from '@/store/user.store'
 import dayjs from 'dayjs'
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { useDisclosure } from '@mantine/hooks'
-import { useState } from 'react'
-import { DateInput } from '@mantine/dates'
+import { useEffect, useRef, useState } from 'react'
+import { DateInput, DatePickerInput, TimeInput } from '@mantine/dates'
+import { IconClock } from '@tabler/icons-react'
 dayjs.extend(customParseFormat);
 
 interface Doctor {
@@ -41,6 +42,9 @@ function Home() {
 
   const queryClient = useQueryClient();
 
+  const ref = useRef<HTMLInputElement>(null);
+
+
   const [opened, { open, close }] = useDisclosure(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor>()
 
@@ -64,6 +68,15 @@ function Home() {
     open()
 
   }
+
+  const timeInput = document.getElementById("time") as HTMLInputElement;
+
+  useEffect(() => {
+
+    if (timeInput) {
+      timeInput.setAttribute("min", "09:00");
+    }
+  }, [])
 
 
   return (
@@ -109,8 +122,8 @@ function Home() {
             ))
           }
         </Grid>
-        <Modal size={"lg"} title="Book Appointment" opened={opened} onClose={close}>
-          <div>
+        <Modal centered size={"lg"} title="Book Appointment" opened={opened} onClose={close}>
+          <Card p={20}>
             <Text tt="capitalize" fw={600} fz={16}>{`Dr. ${selectedDoctor?.user.firstName} ${selectedDoctor?.user.lastName}`}</Text>
             <Text fz={14} fw={600} c={"#05cfff"}>{selectedDoctor?.specialization}</Text>
 
@@ -118,17 +131,36 @@ function Home() {
             <Divider mt={15} />
             <Text mt={10} fz={14}> Select Your Slot</Text>
 
-            <DateInput
+            <form onSubmit={(e) => e.preventDefault()}>
+              <DatePickerInput
               // value={value}
               // onChange={setValue}
+                dropdownType="modal"
               minDate={new Date()}
               label="Select Date"
-              placeholder="Date input"
-              maw={400}
-              mx="auto"
-              size='xs'
-            />
-          </div>
+                placeholder="Date input"
+                size='xs'
+                mt={'md'}
+              />
+              <TimeInput
+                label="Current time"
+                withAsterisk
+                min="9:00"
+                size='xs'
+                id='time'
+                ref={ref}
+                rightSection={
+                  <ActionIcon onClick={() => ref.current?.showPicker()}>
+                    <IconClock size="1rem" stroke={1.5} />
+                  </ActionIcon>
+                }
+                mt={'md'}
+              />
+              <Button mt={'md'} type='submit'>Check Availability</Button>
+            </form>
+          </Card>
+
+
         </Modal>
       </main>
     </>
