@@ -48,6 +48,9 @@ function Home() {
   const [opened, { open, close }] = useDisclosure(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor>()
 
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("")
+
   const fetchDoctorDetails = async () => {
     const { data: response } = await axios.get(`${BaseUrl}/auth/fetch-doctors`, {
       headers: {
