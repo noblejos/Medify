@@ -48,7 +48,7 @@ function Home() {
   const [opened, { open, close }] = useDisclosure(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor>()
 
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState<Date | null>(new Date());
   const [time, setTime] = useState("")
 
   const fetchDoctorDetails = async () => {
@@ -137,7 +137,7 @@ function Home() {
             <form onSubmit={(e) => e.preventDefault()}>
               <DatePickerInput
               // value={value}
-              // onChange={setValue}
+                onChange={(e => setDate(e))}
                 dropdownType="modal"
               minDate={new Date()}
               label="Select Date"
