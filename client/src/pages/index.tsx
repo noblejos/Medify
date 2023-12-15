@@ -46,10 +46,12 @@ function Home() {
 
 
   const [opened, { open, close }] = useDisclosure(false);
-  const [selectedDoctor, setSelectedDoctor] = useState<Doctor>()
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor>();
+
+  const [available, setAvailable] = useState<boolean>(false);
 
   const [date, setDate] = useState<Date | null>(new Date());
-  const [time, setTime] = useState("")
+  const [time, setTime] = useState("");
 
   const fetchDoctorDetails = async () => {
     const { data: response } = await axios.get(`${BaseUrl}/auth/fetch-doctors`, {
@@ -72,14 +74,9 @@ function Home() {
 
   }
 
-  const timeInput = document.getElementById("time") as HTMLInputElement;
+  const handleAvailability = () => {
 
-  useEffect(() => {
-
-    if (timeInput) {
-      timeInput.setAttribute("min", "09:00");
-    }
-  }, [])
+  }
 
 
   return (
@@ -151,6 +148,7 @@ function Home() {
                 min="9:00"
                 size='xs'
                 id='time'
+                onChange={(e => setTime(e.currentTarget.value))}
                 ref={ref}
                 rightSection={
                   <ActionIcon onClick={() => ref.current?.showPicker()}>
@@ -159,7 +157,10 @@ function Home() {
                 }
                 mt={'md'}
               />
-              <Button mt={'md'} type='submit'>Check Availability</Button>
+
+              {!available ? <Button mt={'md'} onClick={handleAvailability}>Check Availability</Button> :
+                <Button mt={'md'} onClick={handleAvailability}>Book Appointment</Button>}
+
             </form>
           </Card>
 
