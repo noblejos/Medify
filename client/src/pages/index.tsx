@@ -75,7 +75,7 @@ function Home() {
   }
 
   const handleAvailability = () => {
-
+    console.log(selectedDoctor, date, time)
   }
 
 
