@@ -29,6 +29,8 @@ router.get("/me", auth, controllers.currentUser);
 
 router.get("/fetch-doctors", auth, controllers.fetchDoctors);
 
+router.get("/check-availability", auth, controllers.checkAvailability);
+
 // POST Requests
 router.post(
 	"/register",

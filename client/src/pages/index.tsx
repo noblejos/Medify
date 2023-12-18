@@ -4,7 +4,7 @@ import styles from '@/styles/Home.module.scss'
 import withLayout from '@/layout/appLayout'
 
 import { ActionIcon, Button, Card, Divider, Flex, Grid, Modal, Text } from '@mantine/core'
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { BaseUrl } from '@/config/baseUrl'
 import axios from 'axios'
 import { getCookie } from 'cookies-next'
@@ -16,6 +16,12 @@ import { useEffect, useRef, useState } from 'react'
 import { DateInput, DatePickerInput, TimeInput } from '@mantine/dates'
 import { IconClock } from '@tabler/icons-react'
 dayjs.extend(customParseFormat);
+
+const CheckAvailability = async (data: any) => {
+  console.log(data)
+  const { data: response } = await axios.post(`${BaseUrl}/user/check-availability`, data);
+  return response.data;
+};
 
 interface Doctor {
   user: UsersInterface;
@@ -74,8 +80,38 @@ function Home() {
 
   }
 
+  const { mutate, isLoading: loading, isError: hasError, error: err } = useMutation(CheckAvailability, {
+    onSuccess: data => {
+      console.log(data);
+
+      // setCookie('auth', data.token, { maxAge: 60 * 6 * 24 });
+      // setUser({ ...data.user, token: data.token });
+      // router.push("/");
+    },
+    onError: (error) => {
+
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data;
+
+        // return setErrorStr(error?.response?.data.message);
+      }
+      console.log({ error })
+      // setErrorStr("Something went wrong while processing your request");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries();
+    }
+  });
   const handleAvailability = () => {
-    console.log(selectedDoctor, date, time)
+    console.log({ doctor: selectedDoctor?.id }, date, time)
+
+    mutate({
+      doctorId: selectedDoctor?.id,
+      date,
+      time
+    })
+
+
   }
 
 
@@ -131,7 +167,7 @@ function Home() {
             <Divider mt={15} />
             <Text mt={10} fz={14}> Select Your Slot</Text>
 
-            <form onSubmit={(e) => e.preventDefault()}>
+            {/* <form onSubmit={(e) => e.preventDefault()}> */}
               <DatePickerInput
               // value={value}
                 onChange={(e => setDate(e))}
@@ -161,7 +197,7 @@ function Home() {
               {!available ? <Button mt={'md'} onClick={handleAvailability}>Check Availability</Button> :
                 <Button mt={'md'} onClick={handleAvailability}>Book Appointment</Button>}
 
-            </form>
+            {/* </form> */}
           </Card>
 
 
