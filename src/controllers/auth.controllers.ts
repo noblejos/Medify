@@ -161,6 +161,8 @@ const checkAvailability = async (req: Request, res: Response) => {
 			date: dayjs(rqb.date).format(),
 			time: { $gte: fromTime, $lte: toTime },
 		});
+
+		console.log({ appointments });
 	} catch (error) {
 		throw error;
 	}

@@ -17,11 +17,21 @@ import { DateInput, DatePickerInput, TimeInput } from '@mantine/dates'
 import { IconClock } from '@tabler/icons-react'
 dayjs.extend(customParseFormat);
 
+const token = getCookie("auth");
+
 const CheckAvailability = async (data: any) => {
   console.log(data)
-  const { data: response } = await axios.post(`${BaseUrl}/user/check-availability`, data);
+  const { data: response } = await axios.get(`${BaseUrl}/auth/check-availability`, {
+    headers: {
+      Authorization: "Bearer " + `${token}`,
+    }
+  });
   return response.data;
 };
+
+// headers: {
+//   Authorization: "Bearer " + `${token}`,
+// }
 
 interface Doctor {
   user: UsersInterface;
@@ -41,7 +51,7 @@ interface Doctor {
 
 const inter = Inter({ subsets: ['latin'] });
 
-const token = getCookie("auth");
+// const token = getCookie("auth");
 
 function Home() {
   const { user } = User();
@@ -77,7 +87,6 @@ function Home() {
   const handleBookAppointment = (id: string) => {
     setSelectedDoctor(doctors.find((doctor: Doctor) => doctor.id == id));
     open()
-
   }
 
   const { mutate, isLoading: loading, isError: hasError, error: err } = useMutation(CheckAvailability, {
@@ -102,6 +111,7 @@ function Home() {
       queryClient.invalidateQueries();
     }
   });
+
   const handleAvailability = () => {
     console.log({ doctor: selectedDoctor?.id }, date, time)
 
@@ -110,10 +120,7 @@ function Home() {
       date,
       time
     })
-
-
   }
-
 
   return (
     <>
