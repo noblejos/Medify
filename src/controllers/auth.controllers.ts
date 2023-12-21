@@ -156,13 +156,20 @@ const checkAvailability = async (req: Request, res: Response) => {
 		const toTime = dayjs(rqb.time).add(60, "m").format("HH:mm");
 		console.log(fromTime, toTime, { date: dayjs(rqb.date).format() });
 
-		const appointments = await AppointmentModel.findOne({
+		const appointments = await AppointmentModel.find({
 			doctor: rqb.doctorId,
 			date: dayjs(rqb.date).format(),
 			time: { $gte: fromTime, $lte: toTime },
 		});
 
-		console.log({ appointments });
+		if (appointments.length) {
+			throw new BadRequestError("Appointment not Available");
+		}
+
+		successfulRequest({
+			res,
+			message: "Appointment Available",
+		});
 	} catch (error) {
 		throw error;
 	}

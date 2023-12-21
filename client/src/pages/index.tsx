@@ -15,6 +15,7 @@ import { useDisclosure } from '@mantine/hooks'
 import { useEffect, useRef, useState } from 'react'
 import { DateInput, DatePickerInput, TimeInput } from '@mantine/dates'
 import { IconClock } from '@tabler/icons-react'
+import useNotification from '@/hooks/useNotification'
 dayjs.extend(customParseFormat);
 
 const token = getCookie("auth");
@@ -26,7 +27,7 @@ const CheckAvailability = async (data: any) => {
       Authorization: "Bearer " + `${token}`,
     }
   });
-  return response.data;
+  return response;
 };
 
 // headers: {
@@ -69,6 +70,8 @@ function Home() {
   const [date, setDate] = useState<Date | null>(new Date());
   const [time, setTime] = useState("");
 
+  const { handleSuccess } = useNotification()
+
   const fetchDoctorDetails = async () => {
     const { data: response } = await axios.get(`${BaseUrl}/auth/fetch-doctors`, {
       headers: {
@@ -92,10 +95,8 @@ function Home() {
   const { mutate, isLoading: loading, isError: hasError, error: err } = useMutation(CheckAvailability, {
     onSuccess: data => {
       console.log(data);
-
-      // setCookie('auth', data.token, { maxAge: 60 * 6 * 24 });
-      // setUser({ ...data.user, token: data.token });
-      // router.push("/");
+      setAvailable(true)
+      handleSuccess("Availability", data.message)
     },
     onError: (error) => {
 
@@ -116,7 +117,7 @@ function Home() {
     console.log({ doctor: selectedDoctor?.id }, date, time)
 
     mutate({
-      doctorId: selectedDoctor?.id,
+      doctor: selectedDoctor?.id,
       date,
       time
     })
