@@ -175,6 +175,31 @@ const checkAvailability = async (req: Request, res: Response) => {
 	}
 };
 
+const bookAppointment = async (req: Request, res: Response) => {
+	const { _id } = req.user;
+	const rqb = req.body;
+	try {
+		const fromTime = dayjs(rqb.time).format("HH:mm");
+
+		const toTime = dayjs(rqb.time).add(60, "m").format("HH:mm");
+		console.log(fromTime, toTime, { date: dayjs(rqb.date).format() });
+
+		const appointment = await AppointmentModel.create({
+			doctor: rqb.doctor,
+			user: _id,
+			date: rqb.date,
+			time: rqb.time,
+		});
+		successfulRequest({
+			res,
+			message: "Appointment Available",
+			data: appointment,
+		});
+	} catch (error) {
+		throw error;
+	}
+};
+
 export default {
 	currentUser,
 	logout,
@@ -183,4 +208,5 @@ export default {
 	applyForDoctorRole,
 	fetchDoctors,
 	checkAvailability,
+	bookAppointment,
 };
