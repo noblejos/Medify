@@ -80,6 +80,14 @@ function Home() {
     });
     return response.data;
   }
+  const bookAppointment = async (data: any) => {
+    const { data: response } = await axios.post(`${BaseUrl}/auth/fetch-doctors`, data, {
+      headers: {
+        Authorization: "Bearer " + `${token}`,
+      }
+    });
+    return response.data;
+  }
 
   const { isLoading, isError, data: doctors, error } = useQuery(["doctor-details"], fetchDoctorDetails);
 
@@ -113,10 +121,40 @@ function Home() {
     }
   });
 
+  const { mutate: book, isLoading: load, isError: hasErr, error: erro } = useMutation(bookAppointment, {
+    onSuccess: data => {
+      console.log(data);
+      // setAvailable(true)
+      // handleSuccess("Availability", data.message)
+    },
+    onError: (error) => {
+
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data;
+
+        // return setErrorStr(error?.response?.data.message);
+      }
+      console.log({ error })
+      // setErrorStr("Something went wrong while processing your request");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries();
+    }
+  });
+
   const handleAvailability = () => {
     console.log({ doctor: selectedDoctor?.id }, date, time)
 
     mutate({
+      doctor: selectedDoctor?.id,
+      date,
+      time
+    })
+  }
+  const handleBooking = () => {
+    console.log({ doctor: selectedDoctor?.id }, date, time)
+
+    book({
       doctor: selectedDoctor?.id,
       date,
       time

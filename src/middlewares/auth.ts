@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload, Jwt } from "jsonwebtoken";
 
 import { NotAuthorizedError } from "../errors/not-authorized-error";
-import UserModel from "../models/user.model";
+import UserModel, { User } from "../models/user.model";
 
 declare global {
 	namespace Express {
@@ -13,10 +13,8 @@ declare global {
 	}
 }
 
-export interface UserData {
+export interface UserData extends User {
 	_id: string;
-	email: string;
-	role: string;
 }
 
 interface Payload extends JwtPayload {}

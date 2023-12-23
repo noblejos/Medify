@@ -1,7 +1,11 @@
 import { Request, Response } from "express";
 
 import { BadRequestError } from "../errors/bad-request-error";
-import { resourceCreated, successfulRequest } from "../helpers/responses";
+import {
+	badRequest,
+	resourceCreated,
+	successfulRequest,
+} from "../helpers/responses";
 import UserModel from "../models/user.model";
 import DoctorModel, { DoctorStatus } from "../models/doctor.model";
 import NotificationsModel, { Role } from "../models/notifications.model";
@@ -176,19 +180,28 @@ const checkAvailability = async (req: Request, res: Response) => {
 };
 
 const bookAppointment = async (req: Request, res: Response) => {
-	const { _id } = req.user;
+	const { _id, lastName, firstName } = req.user;
 	const rqb = req.body;
 	try {
-		const fromTime = dayjs(rqb.time).format("HH:mm");
-
-		const toTime = dayjs(rqb.time).add(60, "m").format("HH:mm");
-		console.log(fromTime, toTime, { date: dayjs(rqb.date).format() });
-
 		const appointment = await AppointmentModel.create({
 			doctor: rqb.doctor,
 			user: _id,
 			date: rqb.date,
 			time: rqb.time,
+		});
+
+		const doctor = await DoctorModel.findById(rqb.doctor);
+
+		if (!doctor)
+			throw new BadRequestError("Doctor Data Could Not Be Retrieved");
+
+		await NotificationsModel.create({
+			user: doctor.user,
+			header: "New Appointment",
+			message: `A new appointment request has been made by ${firstName} ${lastName}`,
+			role: Role.DOCTOR,
+			ref: `/appointments/${appointment._id}`,
+			clickPath: `/appointments/${appointment._id}`,
 		});
 		successfulRequest({
 			res,
