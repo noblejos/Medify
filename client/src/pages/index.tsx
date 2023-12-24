@@ -125,7 +125,7 @@ function Home() {
     onSuccess: data => {
       console.log(data);
       // setAvailable(true)
-      // handleSuccess("Availability", data.message)
+
     },
     onError: (error) => {
 
