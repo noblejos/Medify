@@ -81,7 +81,7 @@ function Home() {
     return response.data;
   }
   const bookAppointment = async (data: any) => {
-    const { data: response } = await axios.post(`${BaseUrl}/auth/fetch-doctors`, data, {
+    const { data: response } = await axios.post(`${BaseUrl}/auth/book-appointment`, data, {
       headers: {
         Authorization: "Bearer " + `${token}`,
       }
