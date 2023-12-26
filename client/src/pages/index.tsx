@@ -30,9 +30,15 @@ const CheckAvailability = async (data: any) => {
   return response;
 };
 
-// headers: {
-//   Authorization: "Bearer " + `${token}`,
-// }
+const bookAppointment = async (data: any) => {
+  const { data: response } = await axios.post(`${BaseUrl}/auth/book-appointment`, data, {
+    headers: {
+      Authorization: "Bearer " + `${token}`,
+    }
+  });
+
+  return response;
+}
 
 interface Doctor {
   user: UsersInterface;
@@ -70,7 +76,7 @@ function Home() {
   const [date, setDate] = useState<Date | null>(new Date());
   const [time, setTime] = useState("");
 
-  const { handleSuccess } = useNotification()
+  const { handleSuccess, handleError } = useNotification()
 
   const fetchDoctorDetails = async () => {
     const { data: response } = await axios.get(`${BaseUrl}/auth/fetch-doctors`, {
@@ -78,6 +84,7 @@ function Home() {
         Authorization: "Bearer " + `${token}`,
       }
     });
+
     return response.data;
   }
   const bookAppointment = async (data: any) => {
@@ -86,7 +93,8 @@ function Home() {
         Authorization: "Bearer " + `${token}`,
       }
     });
-    return response.data;
+
+    return response;
   }
 
   const { isLoading, isError, data: doctors, error } = useQuery(["doctor-details"], fetchDoctorDetails);
@@ -124,18 +132,19 @@ function Home() {
   const { mutate: book, isLoading: load, isError: hasErr, error: erro } = useMutation(bookAppointment, {
     onSuccess: data => {
       console.log(data);
-      // setAvailable(true)
-
     },
     onError: (error) => {
 
       if (axios.isAxiosError(error)) {
         const data = error.response?.data;
 
-        // return setErrorStr(error?.response?.data.message);
+        handleError("Book Appointment", "Encountered an Error");
+        return;
       }
       console.log({ error })
-      // setErrorStr("Something went wrong while processing your request");
+
+      handleError("Book Appointment", "Encountered an Error");
+
     },
     onSettled: () => {
       queryClient.invalidateQueries();
@@ -245,8 +254,6 @@ function Home() {
 
             {/* </form> */}
           </Card>
-
-
         </Modal>
       </main>
     </>
