@@ -154,26 +154,19 @@ const fetchDoctors = async (req: Request, res: Response) => {
 const checkAvailability = async (req: Request, res: Response) => {
 	const { _id } = req.user;
 	const rqb = req.body;
-	console.log({ rqb });
 	try {
-		const fromTime = dayjs(rqb.time).format("HH:mm");
-		console.log({ fromTime });
-		// time, "HH:mm"
+		const fromTime = dayjs(rqb.dateTime).toISOString();
 
-		const toTime = dayjs(rqb.time).add(60, "m").format("HH:mm");
-		console.log(fromTime, toTime, { date: dayjs(rqb.date).format() });
+		const toTime = dayjs(rqb.dateTime).add(60, "m").toISOString();
 
-		console.log(fromTime, toTime, { date: rqb.date, time: rqb.time });
+		const appointments = await AppointmentModel.find({
+			doctor: rqb.doctor,
+			dateTime: { $gte: fromTime, $lte: toTime },
+		});
 
-		// const appointments = await AppointmentModel.find({
-		// 	doctor: rqb.doctorId,
-		// 	date: dayjs(rqb.date).format(),
-		// 	time: { $gte: fromTime, $lte: toTime },
-		// });
-
-		// if (appointments.length) {
-		// 	throw new BadRequestError("Appointment not Available");
-		// }
+		if (appointments.length) {
+			throw new BadRequestError("Appointment not Available");
+		}
 
 		successfulRequest({
 			res,
@@ -192,8 +185,7 @@ const bookAppointment = async (req: Request, res: Response) => {
 		const appointment = await AppointmentModel.create({
 			doctor: rqb.doctor,
 			user: _id,
-			date: dayjs(rqb.date).format(),
-			time: rqb.time,
+			dateTime: dayjs(rqb.dateTime).toISOString(),
 		});
 
 		const doctor = await DoctorModel.findById(rqb.doctor);

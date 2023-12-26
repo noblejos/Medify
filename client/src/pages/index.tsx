@@ -152,27 +152,22 @@ function Home() {
 
   const handleAvailability = () => {
 
-    // const _date = new Date(date).toISOString()
-    const _date = dayjs(date).format("YYYY-MM-DD")
-    console.log({ doctor: selectedDoctor?.id }, _date, time)
+    const _date = dayjs(date).format("YYYY-MM-DD");
+    const dateTime = new Date(`${_date}T${time}`).toISOString();
 
-
-    const dateTime = new Date(`${_date}T${time}`).toISOString()
-    console.log({ dateTime })
-
-    // mutate({
-    //   doctor: selectedDoctor?.id,
-    //   date,
-    //   time
-    // })
+    mutate({
+      doctor: selectedDoctor?.id,
+      dateTime,
+    })
   }
   const handleBooking = () => {
-    console.log({ doctor: selectedDoctor?.id }, date, time)
-    const dateTime = dayjs(`${date}T${time}`).toISOString();
-    // book({
-    //   doctor: selectedDoctor?.id,
-    //   dateTime
-    // })
+    const _date = dayjs(date).format("YYYY-MM-DD");
+    const dateTime = new Date(`${_date}T${time}`).toISOString();
+
+    book({
+      doctor: selectedDoctor?.id,
+      dateTime
+    })
   }
 
   useEffect(() => {
