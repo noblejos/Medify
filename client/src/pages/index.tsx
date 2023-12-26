@@ -22,7 +22,7 @@ const token = getCookie("auth");
 
 const CheckAvailability = async (data: any) => {
   console.log(data)
-  const { data: response } = await axios.get(`${BaseUrl}/auth/check-availability`, {
+  const { data: response } = await axios.post(`${BaseUrl}/auth/check-availability`, data, {
     headers: {
       Authorization: "Bearer " + `${token}`,
     }
@@ -58,7 +58,6 @@ interface Doctor {
 
 const inter = Inter({ subsets: ['latin'] });
 
-// const token = getCookie("auth");
 
 function Home() {
   const { user } = User();
@@ -73,7 +72,7 @@ function Home() {
 
   const [available, setAvailable] = useState<boolean>(false);
 
-  const [date, setDate] = useState<Date | null>(new Date());
+  const [date, setDate] = useState<Date>(new Date());
   const [time, setTime] = useState("");
 
   const { handleSuccess, handleError } = useNotification()
@@ -152,23 +151,33 @@ function Home() {
   });
 
   const handleAvailability = () => {
-    console.log({ doctor: selectedDoctor?.id }, date, time)
 
-    mutate({
-      doctor: selectedDoctor?.id,
-      date,
-      time
-    })
+    // const _date = new Date(date).toISOString()
+    const _date = dayjs(date).format("YYYY-MM-DD")
+    console.log({ doctor: selectedDoctor?.id }, _date, time)
+
+
+    const dateTime = new Date(`${_date}T${time}`).toISOString()
+    console.log({ dateTime })
+
+    // mutate({
+    //   doctor: selectedDoctor?.id,
+    //   date,
+    //   time
+    // })
   }
   const handleBooking = () => {
     console.log({ doctor: selectedDoctor?.id }, date, time)
-
-    book({
-      doctor: selectedDoctor?.id,
-      date,
-      time
-    })
+    const dateTime = dayjs(`${date}T${time}`).toISOString();
+    // book({
+    //   doctor: selectedDoctor?.id,
+    //   dateTime
+    // })
   }
+
+  useEffect(() => {
+    setAvailable(false)
+  }, [time, date])
 
   return (
     <>
@@ -213,7 +222,7 @@ function Home() {
             ))
           }
         </Grid>
-        <Modal centered size={"lg"} title="Book Appointment" opened={opened} onClose={close}>
+        <Modal centered size={"lg"} title="Book Appointment" opened={opened} onClose={() => { close(); setAvailable(false) }}>
           <Card p={20}>
             <Text tt="capitalize" fw={600} fz={16}>{`Dr. ${selectedDoctor?.user.firstName} ${selectedDoctor?.user.lastName}`}</Text>
             <Text fz={14} fw={600} c={"#05cfff"}>{selectedDoctor?.specialization}</Text>
@@ -223,36 +232,35 @@ function Home() {
             <Text mt={10} fz={14}> Select Your Slot</Text>
 
             {/* <form onSubmit={(e) => e.preventDefault()}> */}
-              <DatePickerInput
+            <DatePickerInput
               // value={value}
-                onChange={(e => setDate(e))}
-                dropdownType="modal"
+              onChange={(e => setDate(e!))}
+              dropdownType="modal"
               minDate={new Date()}
               label="Select Date"
-                placeholder="Date input"
-                size='xs'
-                mt={'md'}
-              />
-              <TimeInput
-                label="Current time"
-                withAsterisk
-                min="9:00"
-                size='xs'
-                id='time'
-                onChange={(e => setTime(e.currentTarget.value))}
-                ref={ref}
-                rightSection={
-                  <ActionIcon onClick={() => ref.current?.showPicker()}>
-                    <IconClock size="1rem" stroke={1.5} />
-                  </ActionIcon>
-                }
-                mt={'md'}
-              />
+              placeholder="Date input"
+              size='xs'
+              mt={'md'}
+            />
+            <TimeInput
+              label="Current time"
+              withAsterisk
+              min="9:00"
+              size='xs'
+              id='time'
+              onChange={(e => setTime(e.currentTarget.value))}
+              ref={ref}
+              rightSection={
+                <ActionIcon onClick={() => ref.current?.showPicker()}>
+                  <IconClock size="1rem" stroke={1.5} />
+                </ActionIcon>
+              }
+              mt={'md'}
+            />
 
-              {!available ? <Button mt={'md'} onClick={handleAvailability}>Check Availability</Button> :
-                <Button mt={'md'} onClick={handleAvailability}>Book Appointment</Button>}
+            {!available ? <Button mt={'md'} onClick={handleAvailability}>Check Availability</Button> :
+              <Button mt={'md'} onClick={handleBooking}>Book Appointment</Button>}
 
-            {/* </form> */}
           </Card>
         </Modal>
       </main>

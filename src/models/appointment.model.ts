@@ -39,10 +39,7 @@ export class Appointment {
 	doctor: Ref<Doctor>;
 
 	@prop({ required: true })
-	date: string;
-
-	@prop({ required: true })
-	time: string;
+	dateTime: string;
 
 	@prop({ required: true, default: Status.PENDING })
 	status: Status;
