@@ -5,6 +5,7 @@ import { successfulRequest } from "../helpers/responses";
 import DoctorModel from "../models/doctor.model";
 import { DoctorStatus } from "../models/doctor.model";
 import NotificationsModel from "../models/notifications.model";
+import AppointmentModel from "../models/appointment.model";
 
 const fetchDoctor = async (req: Request, res: Response) => {
 	const user = req.user;
@@ -56,4 +57,25 @@ const updateDoctorProfile = async (req: Request, res: Response) => {
 		throw error;
 	}
 };
-export default { fetchDoctor, updateDoctorProfile };
+
+const fetchAppointments = async (req: Request, res: Response) => {
+	const { _id } = req.user;
+	try {
+		const doctor = await DoctorModel.findOne({ user: _id });
+
+		if (!doctor) throw new BadRequestError("Could not find Doctors Account");
+
+		const appointments = await AppointmentModel.find({
+			doctor,
+		});
+
+		successfulRequest({
+			res,
+			message: "Appointments Fetched Successfully",
+			data: appointments,
+		});
+	} catch (error) {
+		throw error;
+	}
+};
+export default { fetchDoctor, updateDoctorProfile, fetchAppointments };

@@ -211,6 +211,23 @@ const bookAppointment = async (req: Request, res: Response) => {
 	}
 };
 
+const fetchAppointments = async (req: Request, res: Response) => {
+	const { _id } = req.user;
+	try {
+		const appointments = await AppointmentModel.find({
+			user: _id,
+		});
+
+		successfulRequest({
+			res,
+			message: "Appointments Fetched Successfully",
+			data: appointments,
+		});
+	} catch (error) {
+		throw error;
+	}
+};
+
 export default {
 	currentUser,
 	logout,
@@ -220,4 +237,5 @@ export default {
 	fetchDoctors,
 	checkAvailability,
 	bookAppointment,
+	fetchAppointments,
 };

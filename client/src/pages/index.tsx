@@ -7,14 +7,17 @@ import { ActionIcon, Button, Card, Divider, Flex, Grid, Modal, Text } from '@man
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { BaseUrl } from '@/config/baseUrl'
 import axios from 'axios'
+
 import { getCookie } from 'cookies-next'
 import User, { User as UsersInterface } from '@/store/user.store'
 import dayjs from 'dayjs'
 import customParseFormat from "dayjs/plugin/customParseFormat";
+
 import { useDisclosure } from '@mantine/hooks'
 import { useEffect, useRef, useState } from 'react'
-import { DateInput, DatePickerInput, TimeInput } from '@mantine/dates'
+import { DatePickerInput, TimeInput } from '@mantine/dates'
 import { IconClock } from '@tabler/icons-react'
+
 import useNotification from '@/hooks/useNotification'
 dayjs.extend(customParseFormat);
 
@@ -40,6 +43,16 @@ const bookAppointment = async (data: any) => {
   return response;
 }
 
+const fetchDoctorDetails = async () => {
+  const { data: response } = await axios.get(`${BaseUrl}/auth/fetch-doctors`, {
+    headers: {
+      Authorization: "Bearer " + `${token}`,
+    }
+  });
+
+  return response.data;
+}
+
 interface Doctor {
   user: UsersInterface;
   status: string;
@@ -63,9 +76,7 @@ function Home() {
   const { user } = User();
 
   const queryClient = useQueryClient();
-
   const ref = useRef<HTMLInputElement>(null);
-
 
   const [opened, { open, close }] = useDisclosure(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor>();
@@ -76,25 +87,6 @@ function Home() {
   const [time, setTime] = useState("");
 
   const { handleSuccess, handleError } = useNotification()
-
-  const fetchDoctorDetails = async () => {
-    const { data: response } = await axios.get(`${BaseUrl}/auth/fetch-doctors`, {
-      headers: {
-        Authorization: "Bearer " + `${token}`,
-      }
-    });
-
-    return response.data;
-  }
-  const bookAppointment = async (data: any) => {
-    const { data: response } = await axios.post(`${BaseUrl}/auth/book-appointment`, data, {
-      headers: {
-        Authorization: "Bearer " + `${token}`,
-      }
-    });
-
-    return response;
-  }
 
   const { isLoading, isError, data: doctors, error } = useQuery(["doctor-details"], fetchDoctorDetails);
 
@@ -113,15 +105,16 @@ function Home() {
       setAvailable(true)
       handleSuccess("Availability", data.message)
     },
-    onError: (error) => {
+    onError: (error: any) => {
 
       if (axios.isAxiosError(error)) {
         const data = error.response?.data;
 
-        // return setErrorStr(error?.response?.data.message);
+        handleError("Check Availability", error.response?.data.message);
+        return
       }
-      console.log({ error })
-      // setErrorStr("Something went wrong while processing your request");
+
+      handleError("Check Availability", error.response?.data.message);
     },
     onSettled: () => {
       queryClient.invalidateQueries();
@@ -135,13 +128,9 @@ function Home() {
     onError: (error) => {
 
       if (axios.isAxiosError(error)) {
-        const data = error.response?.data;
-
         handleError("Book Appointment", "Encountered an Error");
         return;
       }
-      console.log({ error })
-
       handleError("Book Appointment", "Encountered an Error");
 
     },
@@ -151,7 +140,6 @@ function Home() {
   });
 
   const handleAvailability = () => {
-
     const _date = dayjs(date).format("YYYY-MM-DD");
     const dateTime = new Date(`${_date}T${time}`).toISOString();
 
@@ -160,6 +148,7 @@ function Home() {
       dateTime,
     })
   }
+
   const handleBooking = () => {
     const _date = dayjs(date).format("YYYY-MM-DD");
     const dateTime = new Date(`${_date}T${time}`).toISOString();
