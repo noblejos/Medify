@@ -10,7 +10,8 @@ import { Doctor } from "./doctor.model";
 
 export enum Status {
 	PENDING = "pending",
-	COMPLETED = "completed",
+	APPROVED = "approved",
+	REJECTED = "rejected",
 }
 
 @modelOptions({

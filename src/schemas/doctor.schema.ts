@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Status } from "../models/appointment.model";
 
 const apply = z.object({
 	body: z.object({
@@ -26,6 +27,28 @@ const apply = z.object({
 	}),
 });
 
+const updateAppointmentStatus = z.object({
+	body: z.object({
+		status: z.enum(["approve", "reject"], {
+			errorMap: (issue, _ctx) => {
+				switch (issue.code) {
+					case "invalid_type":
+						return {
+							message: "role: expected 'approve' or 'reject' ",
+						};
+					case "invalid_enum_value":
+						return {
+							message: "role: expected 'approve' or 'reject'  ",
+						};
+					default:
+						return { message: "role: expected 'approve' or 'reject'  " };
+				}
+			},
+		}),
+	}),
+});
+
 export default {
 	apply,
+	updateAppointmentStatus,
 };

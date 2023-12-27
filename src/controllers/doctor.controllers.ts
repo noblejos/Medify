@@ -5,7 +5,7 @@ import { successfulRequest } from "../helpers/responses";
 import DoctorModel from "../models/doctor.model";
 import { DoctorStatus } from "../models/doctor.model";
 import NotificationsModel from "../models/notifications.model";
-import AppointmentModel from "../models/appointment.model";
+import AppointmentModel, { Status } from "../models/appointment.model";
 
 const fetchDoctor = async (req: Request, res: Response) => {
 	const user = req.user;
@@ -78,4 +78,41 @@ const fetchAppointments = async (req: Request, res: Response) => {
 		throw error;
 	}
 };
-export default { fetchDoctor, updateDoctorProfile, fetchAppointments };
+
+const changeAppointmentStatus = async (req: Request, res: Response) => {
+	const user = req.user;
+	const { _id } = req.params;
+	const status = req.body.status;
+	try {
+		const doctor = await DoctorModel.findOne({ user });
+
+		const appointment = await AppointmentModel.findOneAndUpdate(
+			{ doctor, _id },
+			{
+				status:
+					status === "approve"
+						? Status.APPROVED
+						: status === "reject"
+						? Status.REJECTED
+						: Status.PENDING,
+			},
+			{ new: true },
+		);
+
+		if (!appointment) throw new BadRequestError("Could Not Find Appointment");
+
+		successfulRequest({
+			res,
+			message: "Appointment Status Updated Successfully",
+			data: appointment,
+		});
+	} catch (error) {
+		throw error;
+	}
+};
+export default {
+	fetchDoctor,
+	updateDoctorProfile,
+	fetchAppointments,
+	changeAppointmentStatus,
+};

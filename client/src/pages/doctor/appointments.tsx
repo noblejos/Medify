@@ -1,7 +1,7 @@
 import withLayout from '@/layout/appLayout'
-import { Badge, Button, Container, Table, Text } from '@mantine/core'
+import { Badge, Button, Container, Flex, LoadingOverlay, Table, Text } from '@mantine/core'
 import React from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { getCookie } from 'cookies-next';
 import axios from 'axios';
 import { BaseUrl } from '@/config/baseUrl';
@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { User } from '@/store/user.store';
 import dayjs from "dayjs";
 import { GetServerSideProps } from 'next';
+import useNotification from '@/hooks/useNotification';
 
 const token = getCookie("auth")
 
@@ -17,12 +18,25 @@ interface IAppointment {
     patient: User,
     doctor: any,
     status: string,
-    dateTime: Date
+    dateTime: Date,
+    id: string
+}
+
+const updateStatus = async (data: any) => {
+    const { data: response } = await axios.patch(`${BaseUrl}/doctor/change-appointment-status/${data.id}`, { status: data.status }, {
+        headers: {
+            Authorization: "Bearer " + `${token}`,
+        }
+    });
+
+    return response;
 }
 
 function DoctorsAppointment() {
 
     const queryClient = useQueryClient();
+
+    const { handleSuccess, handleError } = useNotification()
 
     const fetchUsers = async () => {
         const { data: response } = await axios.get(`${BaseUrl}/doctor/fetch-appointments`, {
@@ -33,10 +47,35 @@ function DoctorsAppointment() {
     const { isLoading, isError, data, error } = useQuery(["appointment-list"], fetchUsers)
     console.log({ data })
 
-    console.log(isLoading, data)
+    const { mutate, isLoading: load, isError: hasErr, error: erro } = useMutation(updateStatus, {
+        onSuccess: data => {
+            console.log(data);
+
+            handleSuccess("Appointment", data.message)
+        },
+        onError: (error: any) => {
+            console.log(error.response)
+            if (axios.isAxiosError(error)) {
+                handleError("Appointment", "Encountered an Error");
+                return;
+            }
+            handleError("Appointment", "Encountered an Error");
+
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries();
+        }
+    });
+
+    const handleUpdateStatus = (status: string, id: string) => {
+        console.log({ status, id })
+        mutate({ status, id })
+    }
+
 
     return (
-        <Container size={"lg"}>
+        <Container size={"lg"} pos={"relative"} mih={"90vh"}>
+            <LoadingOverlay visible={load} />
             <Text fz={22} fw={500} mb={30} > Appointments </Text>
             <Table
                 horizontalSpacing="md"
@@ -82,6 +121,13 @@ function DoctorsAppointment() {
                                 Status
                             </Text>
                         </Th>
+                        <Th
+                            sortable={false}
+                        >
+                            <Text fz={12} fw={600}>
+                                Action
+                            </Text>
+                        </Th>
 
                     </tr>
                 </thead>
@@ -117,6 +163,12 @@ function DoctorsAppointment() {
                                             {item?.status}
                                         </Badge>
                                     </Text>
+                                </Td>
+                                <Td>
+                                    <Flex align='center' gap={10}>
+                                        <Button size='xs' w={80} onClick={() => handleUpdateStatus("approve", item.id)}> Approve</Button>
+                                        <Button size='xs' variant='outline' w={80} onClick={() => handleUpdateStatus("reject", item.id)}> Reject</Button>
+                                    </Flex>
                                 </Td>
                             </tr>
                         ))
