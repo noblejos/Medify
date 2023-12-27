@@ -216,7 +216,7 @@ const fetchAppointments = async (req: Request, res: Response) => {
 	try {
 		const appointments = await AppointmentModel.find({
 			user: _id,
-		});
+		}).populate("doctor");
 
 		successfulRequest({
 			res,
