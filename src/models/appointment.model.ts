@@ -33,7 +33,7 @@ export enum Status {
 })
 export class Appointment {
 	@prop({ required: true, ref: () => User })
-	user: Ref<User>;
+	patient: Ref<User>;
 
 	@prop({ required: true, ref: () => Doctor })
 	doctor: Ref<Doctor>;

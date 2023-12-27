@@ -14,18 +14,18 @@ import { GetServerSideProps } from 'next';
 const token = getCookie("auth")
 
 interface IAppointment {
-    user: User,
+    patient: User,
     doctor: any,
     status: string,
     dateTime: Date
 }
 
-function Appointment() {
+function DoctorsAppointment() {
 
     const queryClient = useQueryClient();
 
     const fetchUsers = async () => {
-        const { data: response } = await axios.get(`${BaseUrl}/auth/fetch-appointments`, {
+        const { data: response } = await axios.get(`${BaseUrl}/doctor/fetch-appointments`, {
             headers: { Authorization: "Bearer " + `${token}` }
         });
         return response.data;
@@ -58,7 +58,7 @@ function Appointment() {
                             sortable={false}
                         >
                             <Text fz={12} fw={600}>
-                                Doctor
+                                Name
                             </Text>
                         </Th>
                         <Th
@@ -93,10 +93,10 @@ function Appointment() {
                                     <Text fw={400}>{index + 1}</Text>
                                 </Td>
                                 <Td>
-                                    <Text fw={400} tt={"capitalize"} fz="sm">{`${item.doctor.user.firstName} ${item.doctor.user.lastName}`}</Text>
+                                    <Text fw={400} tt={"capitalize"} fz="sm">{`${item.patient.firstName} ${item.patient.lastName}`}</Text>
                                 </Td>
                                 <Td>
-                                    <Text fw={400} fz="sm">{item.doctor.user.email}</Text>
+                                    <Text fw={400} fz="sm">{item.patient.email}</Text>
                                 </Td>
                                 <Td>
                                     <Text fz="sm" fw={400} >{dayjs(item.dateTime).format("YYYY-MM-DD HH:mm")}</Text>
@@ -144,7 +144,7 @@ function Appointment() {
     )
 }
 
-export default withLayout(Appointment, "Appointments")
+export default withLayout(DoctorsAppointment, "Appointments")
 
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {

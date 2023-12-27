@@ -67,7 +67,7 @@ const fetchAppointments = async (req: Request, res: Response) => {
 
 		const appointments = await AppointmentModel.find({
 			doctor,
-		});
+		}).populate("patient");
 
 		successfulRequest({
 			res,

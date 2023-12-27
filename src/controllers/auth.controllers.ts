@@ -184,7 +184,7 @@ const bookAppointment = async (req: Request, res: Response) => {
 	try {
 		const appointment = await AppointmentModel.create({
 			doctor: rqb.doctor,
-			user: _id,
+			patient: _id,
 			dateTime: dayjs(rqb.dateTime).toISOString(),
 		});
 
