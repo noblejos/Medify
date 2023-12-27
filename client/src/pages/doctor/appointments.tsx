@@ -45,16 +45,13 @@ function DoctorsAppointment() {
         return response.data;
     }
     const { isLoading, isError, data, error } = useQuery(["appointment-list"], fetchUsers)
-    console.log({ data })
 
     const { mutate, isLoading: load, isError: hasErr, error: erro } = useMutation(updateStatus, {
         onSuccess: data => {
-            console.log(data);
 
             handleSuccess("Appointment", data.message)
         },
         onError: (error: any) => {
-            console.log(error.response)
             if (axios.isAxiosError(error)) {
                 handleError("Appointment", "Encountered an Error");
                 return;
@@ -68,7 +65,6 @@ function DoctorsAppointment() {
     });
 
     const handleUpdateStatus = (status: string, id: string) => {
-        console.log({ status, id })
         mutate({ status, id })
     }
 
